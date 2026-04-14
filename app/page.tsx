@@ -1,52 +1,41 @@
 "use client";
 import { useEffect, useState } from "react";
-import { sdk } from '@farcaster/miniapp-sdk';
 
 export default function Home() {
-  const [user, setUser] = useState<{ fid: number }>();
   const [status, setStatus] = useState("Loading...");
 
   useEffect(() => {
-    (async () => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/@farcaster/miniapp-sdk@0.2.0/dist/index.min.js";
+    script.onload = async () => {
       try {
-        // Quick Auth ব্যবহার করে অথেনটিকেটেড রিকোয়েস্ট
-        const res = await sdk.quickAuth.fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`);
-        if (res.ok) {
-          const userData = await res.json();
-          setUser(userData);
-          setStatus("Authentication successful! Redirecting...");
-          
-          // SDK-কে জানিয়ে দিন যে অ্যাপ লোড হয়েছে
-          await sdk.actions.ready();
-          
-          // অথেনটিকেশন সফল হলে আপনার PHP ড্যাশবোর্ডে পাঠিয়ে দিন
+        const sdk = (window as any).miniapp.sdk;
+        setStatus("Connecting to Farcaster...");
+        
+        // SDK-কে জানিয়ে দিন অ্যাপ লোড হয়েছে
+        await sdk.actions.ready();
+        
+        const user = await sdk.user.getUser();
+        if (user && user.fid) {
+          setStatus(`Welcome @${user.username || "user"}! Redirecting...`);
           window.location.replace("https://xtaskai.com/base-mini-app/dashboard.php");
         } else {
-          setStatus("Authentication failed. Please open inside Farcaster.");
+          setStatus("Please open this app inside Farcaster.");
         }
-      } catch (error) {
-        console.error("Auth Error:", error);
-        setStatus("Error: Could not authenticate. Please try again.");
+      } catch (e) {
+        console.error(e);
+        setStatus("Error: Could not initialize. Please ensure you're in Farcaster app.");
       }
-    })();
+    };
+    script.onerror = () => setStatus("Error: Failed to load SDK.");
+    document.head.appendChild(script);
   }, []);
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-black text-white">
-        <div className="text-center p-4">
-          <h1 className="text-3xl font-bold mb-4">XtaskAI.far</h1>
-          <p className="text-lg">{status}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-black text-white">
       <div className="text-center p-4">
         <h1 className="text-3xl font-bold mb-4">XtaskAI.far</h1>
-        <p className="text-lg">hello, {user.fid}</p>
+        <p className="text-lg">{status}</p>
       </div>
     </div>
   );
