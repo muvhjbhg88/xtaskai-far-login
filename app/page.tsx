@@ -1,12 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 
-declare global {
-  interface Window {
-    MiniAppSDK: any;
-  }
-}
-
 export default function Home() {
   const [status, setStatus] = useState("Loading...");
 
@@ -15,7 +9,7 @@ export default function Home() {
     script.src = "https://cdn.jsdelivr.net/npm/@farcaster/mini-app-sdk@latest/dist/index.min.js";
     script.onload = async () => {
       try {
-        const sdk = new window.MiniAppSDK();
+        const sdk = new (window as any).MiniAppSDK();
         await sdk.ready();
         const user = sdk.user;
 
