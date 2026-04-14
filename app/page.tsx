@@ -1,43 +1,42 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [msg, setMsg] = useState("Verifying identity...");
+
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/@farcaster/mini-app-sdk@0.1.0/dist/index.min.js";
-    script.onload = () => {
+    async function init() {
       try {
-        const sdk = new (window as any).MiniAppSDK();
-        sdk.ready().then((context: any) => {
-          const user = context.user;
-          if (user?.fid) {
-            window.location.replace("https://xtaskai.com/base-mini-app/dashboard.php");
-          } else {
-            document.body.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">Please open inside Farcaster.</div>';
-          }
-        }).catch(() => {
-          document.body.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">Error: Not in Farcaster.</div>';
-        });
+        const { sdk } = await import("@farcaster/frame-sdk");
+        await sdk.actions.ready();
+        const context = await sdk.context;
+
+        if (context?.user?.fid) {
+          setMsg("Welcome! Redirecting to dashboard...");
+          setTimeout(() => {
+            window.location.replace(
+              `https://xtaskai.com/base-mini-app/dashboard.php?fid=${context.user.fid}&username=${encodeURIComponent(context.user.username ?? "")}`
+            );
+          }, 2000);
+        } else {
+          setMsg("Please open inside Farcaster.");
+        }
       } catch (e) {
-        document.body.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">SDK Load Error.</div>';
+        setMsg("Error: Could not load SDK.");
       }
-    };
-    document.head.appendChild(script);
+    }
+    init();
   }, []);
 
   return (
     <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '100vh', 
-      background: '#0a0a0a', 
-      color: 'white',
-      fontFamily: 'Arial, sans-serif'
+      display: "flex", justifyContent: "center", alignItems: "center", 
+      height: "100vh", background: "#0a0a0a", color: "white",
+      fontFamily: "Arial, sans-serif"
     }}>
-      <div style={{ textAlign: 'center' }}>
-        <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>XtaskAI.far</h1>
-        <p>Redirecting to dashboard...</p>
+      <div style={{ textAlign: "center" }}>
+        <h1 style={{ fontSize: "2rem", marginBottom: "1rem" }}>XtaskAI.far</h1>
+        <p>{msg}</p>
       </div>
     </div>
   );
