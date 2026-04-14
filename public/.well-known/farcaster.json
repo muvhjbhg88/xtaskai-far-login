@@ -4,7 +4,7 @@
     "payload": "eyJkb21haW4iOiJ4dGFza2FpLWZhci1sb2dpbi52ZXJjZWwuYXBwIn0",
     "signature": "Zai3UUw5VuIIKPmZ5JlrKa6ZcP9xnER6jeQznfzMsdcZBf89trpyR+P4S7xoUpvyzoibfuZK848lqoBA16sx7Bs="
   },
-  "miniapp": {
+  "frame": {
     "version": "1",
     "name": "XtaskAI.far",
     "iconUrl": "https://xtaskai.com/base-mini-app/assets/logo.png",

@@ -5,32 +5,28 @@ export default function Home() {
   const [status, setStatus] = useState("Loading...");
 
   useEffect(() => {
-    const init = async () => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk@0.0.1/dist/index.min.js";
+    script.onload = async () => {
       try {
-        // @ts-ignore - Farcaster SDK types are not fully compatible
-        const module = await import("@farcaster/miniapp-sdk");
-        const sdk = module.sdk;
-        
+        const sdk = (window as any).frame.sdk;
         setStatus("Connecting to Farcaster...");
         await sdk.actions.ready();
         
-        setStatus("Fetching user data...");
-        // @ts-ignore - getUser method exists at runtime
         const user = await sdk.user.getUser();
-        
-        if (user && user.fid) {
+        if (user?.fid) {
           setStatus(`Welcome @${user.username || "user"}! Redirecting...`);
           window.location.replace("https://xtaskai.com/base-mini-app/dashboard.php");
         } else {
-          setStatus("Please open this app inside Farcaster.");
+          setStatus("Please open inside Farcaster.");
         }
-      } catch (error) {
-        console.error("Init Error:", error);
-        setStatus("Error: Could not initialize Farcaster SDK. Please ensure you're in the Farcaster app.");
+      } catch (e) {
+        console.error(e);
+        setStatus("Error initializing. Please reopen in Farcaster.");
       }
     };
-    
-    init();
+    script.onerror = () => setStatus("Error loading SDK.");
+    document.head.appendChild(script);
   }, []);
 
   return (
