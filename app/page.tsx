@@ -5,32 +5,33 @@ export default function Home() {
   const [status, setStatus] = useState("Loading...");
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setStatus("Verifying Farcaster identity...");
-      
-      const script = document.createElement('script');
-      script.src = "https://cdn.jsdelivr.net/npm/@farcaster/mini-app-sdk@latest/dist/index.min.js";
-      script.onload = () => {
-        try {
-          const sdk = new (window as any).MiniAppSDK();
-          sdk.ready().then((context: any) => {
-            const user = context?.user;
-            if (user && user.fid) {
-              setStatus(`Welcome @${user.username || 'farcaster user'}! Redirecting...`);
-              window.location.href = "https://xtaskai.com/base-mini-app/dashboard.php";
-            } else {
-              setStatus("Please open this app inside Farcaster.");
-            }
-          }).catch(() => {
-            setStatus("Error: Please open inside Farcaster app.");
-          });
-        } catch (e) {
-          setStatus("Error: Farcaster SDK failed to load.");
+    const loadAndInitSDK = async () => {
+      setStatus("Loading Farcaster SDK...");
+      try {
+        // SDK লোড করা হচ্ছে
+        const sdkModule = await import('@farcaster/miniapp-sdk');
+        const { sdk } = sdkModule;
+        
+        // SDK রেডি হওয়ার জন্য অপেক্ষা (এটা খুবই জরুরি!)
+        await sdk.actions.ready();[reference:0]
+        setStatus("SDK Ready. Fetching user context...");
+
+        // ইউজারের তথ্য নেওয়া
+        const user = await sdk.user.getUser();
+        
+        if (user && user.fid) {
+          setStatus(`Welcome @${user.username || 'farcaster user'}! Redirecting...`);
+          window.location.href = "https://xtaskai.com/base-mini-app/dashboard.php";
+        } else {
+          setStatus("Error: Could not fetch user. Please open inside Farcaster.");
         }
-      };
-      script.onerror = () => setStatus("Error: Could not load Farcaster SDK.");
-      document.head.appendChild(script);
-    }
+      } catch (error) {
+        console.error("SDK Initialization Error:", error);
+        setStatus("Error: Could not load Farcaster SDK. Please ensure you are inside the Farcaster app.");
+      }
+    };
+
+    loadAndInitSDK();
   }, []);
 
   return (
