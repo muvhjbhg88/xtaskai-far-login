@@ -5,27 +5,32 @@ export default function Home() {
   const [status, setStatus] = useState("Loading...");
 
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/@farcaster/mini-app-sdk@latest/dist/index.min.js";
-    script.onload = async () => {
+    const init = async () => {
       try {
-        const sdk = new (window as any).MiniAppSDK();
-        await sdk.ready();
-        const user = sdk.user;
-
+        // @ts-ignore - Farcaster SDK types are not fully compatible
+        const module = await import("@farcaster/miniapp-sdk");
+        const sdk = module.sdk;
+        
+        setStatus("Connecting to Farcaster...");
+        await sdk.actions.ready();
+        
+        setStatus("Fetching user data...");
+        // @ts-ignore - getUser method exists at runtime
+        const user = await sdk.user.getUser();
+        
         if (user && user.fid) {
-          setStatus(`Welcome @${user.username || "farcaster user"}! Redirecting...`);
-          window.location.href = "https://xtaskai.com/base-mini-app/dashboard.php";
+          setStatus(`Welcome @${user.username || "user"}! Redirecting...`);
+          window.location.replace("https://xtaskai.com/base-mini-app/dashboard.php");
         } else {
           setStatus("Please open this app inside Farcaster.");
         }
-      } catch (e) {
-        console.error(e);
-        setStatus("Error: Could not load Farcaster SDK.");
+      } catch (error) {
+        console.error("Init Error:", error);
+        setStatus("Error: Could not initialize Farcaster SDK. Please ensure you're in the Farcaster app.");
       }
     };
-    script.onerror = () => setStatus("Error: Could not load SDK script.");
-    document.head.appendChild(script);
+    
+    init();
   }, []);
 
   return (
