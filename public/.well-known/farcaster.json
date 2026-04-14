@@ -1,0 +1,10 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "XtaskAI.far",
+    "iconUrl": "https://xtaskai.com/logo.png",
+    "homeUrl": "https://xtaskai-far-login.vercel.app",
+    "splashImageUrl": "https://xtaskai.com/splash.png",
+    "splashBackgroundColor": "#0a0a0a"
+  }
+}
