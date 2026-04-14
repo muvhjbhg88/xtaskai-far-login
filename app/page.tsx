@@ -5,30 +5,30 @@ export default function Home() {
   const [status, setStatus] = useState("Loading...");
 
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/@farcaster/miniapp-sdk@0.2.0/dist/index.min.js";
-    script.onload = async () => {
+    const init = async () => {
       try {
-        const sdk = (window as any).miniapp.sdk;
-        setStatus("Connecting to Farcaster...");
+        const { sdk } = await import("@farcaster/miniapp-sdk");
         
-        // SDK-কে জানিয়ে দিন অ্যাপ লোড হয়েছে
+        setStatus("Connecting to Farcaster...");
         await sdk.actions.ready();
         
+        setStatus("Fetching user data...");
+        // @ts-ignore - TypeScript error bypass for working method
         const user = await sdk.user.getUser();
+        
         if (user && user.fid) {
           setStatus(`Welcome @${user.username || "user"}! Redirecting...`);
           window.location.replace("https://xtaskai.com/base-mini-app/dashboard.php");
         } else {
           setStatus("Please open this app inside Farcaster.");
         }
-      } catch (e) {
-        console.error(e);
-        setStatus("Error: Could not initialize. Please ensure you're in Farcaster app.");
+      } catch (error) {
+        console.error("Init Error:", error);
+        setStatus("Error: Could not initialize Farcaster SDK. Please ensure you're in the Farcaster app.");
       }
     };
-    script.onerror = () => setStatus("Error: Failed to load SDK.");
-    document.head.appendChild(script);
+    
+    init();
   }, []);
 
   return (
